@@ -1,0 +1,16 @@
+server:
+  port: 8081
+
+spring:
+  application:
+    name: legacy-sse
+  ai:
+    mcp:
+      server:
+        name: legacy-device-mcp-server
+        # 旧规范标志：SSE 端点
+        sse-message-endpoint: /mcp/message
+
+logging:
+  level:
+    com.ethanliang.mcp: DEBUG

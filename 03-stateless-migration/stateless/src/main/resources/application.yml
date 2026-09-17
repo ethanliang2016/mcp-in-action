@@ -1,0 +1,20 @@
+server:
+  port: 8082
+
+spring:
+  application:
+    name: stateless-demo
+  ai:
+    mcp:
+      server:
+        name: stateless-device-mcp-server
+        version: 1.0.0
+
+        # 新版核心配置：启用无状态模式
+        # 旧版的 sse-message-endpoint 已不再需要
+        # 端点默认为 /mcp，可用 spring.ai.mcp.server.stateless.mcp-endpoint 自定义
+        protocol: STATELESS
+
+logging:
+  level:
+    com.ethanliang.mcp: DEBUG
