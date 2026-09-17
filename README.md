@@ -2,7 +2,7 @@
 
 《MCP 实战手记》系列（CSDN）配套可运行代码。
 
-> 系列文章：<!-- TODO: 填写你的 CSDN 系列主页链接 -->
+> 系列文章：[CSDN 主页 · 《MCP 实战手记》](https://blog.csdn.net/weixin_39885962)
 
 ## 这是什么
 
@@ -22,7 +22,7 @@
 ## 快速开始
 
 ```bash
-git clone https://github.com/<your-name>/mcp-in-action.git
+git clone https://github.com/ethanliang2016/mcp-in-action.git
 cd mcp-in-action
 git checkout v03
 
