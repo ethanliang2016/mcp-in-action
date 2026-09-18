@@ -15,6 +15,7 @@
 | 模块 | JDK | Spring Boot | Spring AI |
 |---|---|---|---|
 | `legacy-sse`（旧版） | 17+ | 3.3.x | 1.0.0-M7 |
+| `first-server`（第 2 篇） | 17+ | 3.3.x | 1.0.0-M7 |
 | `stateless`（新版） | **21+** | 4.0.x | **2.0.1** |
 
 > 建议统一用 **JDK 21** 构建（旧版模块以 release 17 编译）。
@@ -24,13 +25,14 @@
 ```bash
 git clone https://github.com/ethanliang2016/mcp-in-action.git
 cd mcp-in-action
+# 第 2 篇：跑通第一个 MCP Server（SSE + 有状态）
+git checkout v02
+cd 02-first-server && mvn spring-boot:run                     # 端口 8080
+
+# 第 3 篇：新旧对照
 git checkout v03
-
-# 旧版：SSE + 有状态
-cd 03-stateless-migration/legacy-sse && mvn spring-boot:run   # 端口 8081
-
-# 新版：STATELESS 无状态
-cd ../stateless && mvn spring-boot:run                        # 端口 8082
+cd 03-stateless-migration/legacy-sse && mvn spring-boot:run   # 端口 8081（旧版 SSE + 有状态）
+cd ../stateless && mvn spring-boot:run                        # 端口 8082（新版 STATELESS 无状态）
 ```
 
 ## 第 3 篇：新旧对照
@@ -55,7 +57,7 @@ cd ../stateless && mvn spring-boot:run                        # 端口 8082
 |---|---|---|
 | `03-stateless-migration/legacy-sse` | 第 3 篇 · 旧版 | `v03` |
 | `03-stateless-migration/stateless` | 第 3 篇 · 新版 | `v03` |
-| `02-first-server/` | 第 2 篇 | 规划中 |
+| `02-first-server/` | 第 2 篇 | `v02` |
 | `04-cimd-auth/` | 第 4 篇 | 规划中 |
 | `05-mcp-apps/` | 第 5 篇 | 规划中 |
 | `06-mcp-gateway/` | 第 6 篇 | 规划中 |

@@ -36,6 +36,7 @@ Thumbs.db
 
 # Logs
 *.log
+*.out
 logs/
 
 # 本地配置覆盖（切勿提交真实配置）

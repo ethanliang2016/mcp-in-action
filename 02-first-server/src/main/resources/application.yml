@@ -1,0 +1,16 @@
+server:
+  port: 8080
+
+spring:
+  application:
+    name: first-mcp-server
+  ai:
+    mcp:
+      server:
+        name: room-monitor-mcp-server
+        # 旧规范标志：SSE 端点
+        sse-message-endpoint: /mcp/message
+
+logging:
+  level:
+    com.ethanliang.mcp: DEBUG
