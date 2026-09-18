@@ -39,7 +39,10 @@ public class RoomDashboardService {
     @McpTool(name = "get_room_dashboard",
             description = "获取机房仪表盘数据（温湿度与设备状态），结果带一块可交互界面",
             generateOutputSchema = true,
-            metaProvider = DashboardUiMetaProvider.class)
+            metaProvider = DashboardUiMetaProvider.class,
+            // 查询工具必须显式改注解：MCP 默认 destructiveHint=true（保守默认），
+            // 不改的话只读查询会被宿主当成破坏性操作
+            annotations = @McpTool.McpAnnotations(readOnlyHint = true, destructiveHint = false, idempotentHint = true))
     public RoomDashboard getRoomDashboard() {
         return new RoomDashboard(23.5, 48.2, snapshot());
     }
@@ -49,7 +52,9 @@ public class RoomDashboardService {
      */
     @McpTool(name = "control_device",
             description = "启动或关闭指定设备（仅界面可用）",
-            metaProvider = AppOnlyUiMetaProvider.class)
+            metaProvider = AppOnlyUiMetaProvider.class,
+            // 控制类工具：显式声明破坏性，宿主可据此提示用户确认
+            annotations = @McpTool.McpAnnotations(destructiveHint = true))
     public String controlDevice(
             @McpToolParam(description = "设备名称") String deviceName,
             @McpToolParam(description = "1 启动 / 0 关闭；不传则取反", required = false) Integer operateType) {
