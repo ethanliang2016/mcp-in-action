@@ -1,0 +1,18 @@
+server:
+  port: 8085
+
+spring:
+  application:
+    name: mcp-apps-demo
+  ai:
+    mcp:
+      server:
+        name: mcp-apps-demo-server
+        version: 1.0.0
+
+        # 延续系列（三）的无状态模式；端点默认 /mcp
+        protocol: STATELESS
+
+logging:
+  level:
+    com.ethanliang.mcp: DEBUG

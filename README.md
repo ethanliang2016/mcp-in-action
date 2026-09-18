@@ -17,6 +17,7 @@
 | `legacy-sse`（旧版） | 17+ | 3.3.x | 1.0.0-M7 |
 | `first-server`（第 2 篇） | 17+ | 3.3.x | 1.0.0-M7 |
 | `stateless`（新版） | **21+** | 4.0.x | **2.0.1** |
+| `mcp-apps`（第 5 篇） | **21+** | 4.0.x | **2.0.1** |
 
 > 建议统一用 **JDK 21** 构建（旧版模块以 release 17 编译）。
 
@@ -33,6 +34,10 @@ cd 02-first-server && mvn spring-boot:run                     # 端口 8080
 git checkout v03
 cd 03-stateless-migration/legacy-sse && mvn spring-boot:run   # 端口 8081（旧版 SSE + 有状态）
 cd ../stateless && mvn spring-boot:run                        # 端口 8082（新版 STATELESS 无状态）
+
+# 第 5 篇：MCP Apps（工具返回一块可交互界面）
+git checkout v05
+cd 05-mcp-apps && mvn spring-boot:run                        # 端口 8085
 ```
 
 ## 第 3 篇：新旧对照
@@ -51,6 +56,14 @@ cd ../stateless && mvn spring-boot:run                        # 端口 8082（�
 
 > ⚠️ 无状态服务器**不支持 elicitation / sampling / ping**（服务端不能主动向客户端发请求），也不适用 `ToolContext`。
 
+## 第 5 篇：MCP Apps（工具返回界面）
+
+工具在**自己的元数据**里写 `_meta.ui.resourceUri` 指向 `ui://` 界面资源，宿主取资源后在沙箱 iframe 渲染；
+不支持该扩展的宿主拿文本回退（`content[0].text`），工具照样可用。
+
+> Spring AI 的 `ToolDefinition` 只有 name / description / inputSchema，**没有 meta**，
+> 所以绑定要走 `@McpTool(metaProvider = ...)`，`@Tool` 那条路挂不上。
+
 ## 目录结构
 
 | 目录 | 篇目 | tag |
@@ -58,8 +71,8 @@ cd ../stateless && mvn spring-boot:run                        # 端口 8082（�
 | `03-stateless-migration/legacy-sse` | 第 3 篇 · 旧版 | `v03` |
 | `03-stateless-migration/stateless` | 第 3 篇 · 新版 | `v03` |
 | `02-first-server/` | 第 2 篇 | `v02` |
-| `04-cimd-auth/` | 第 4 篇 | 准备中（tag v04 待发布） |
-| `05-mcp-apps/` | 第 5 篇 | 规划中 |
+| `04-cimd-auth/` | 第 4 篇 | `v04` |
+| `05-mcp-apps/` | 第 5 篇 | `v05` |
 | `06-mcp-gateway/` | 第 6 篇 | 规划中 |
 | `07-security/` | 第 7 篇 | 规划中 |
 
