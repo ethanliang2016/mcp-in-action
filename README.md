@@ -58,7 +58,7 @@ cd ../stateless && mvn spring-boot:run                        # 端口 8082（�
 | `03-stateless-migration/legacy-sse` | 第 3 篇 · 旧版 | `v03` |
 | `03-stateless-migration/stateless` | 第 3 篇 · 新版 | `v03` |
 | `02-first-server/` | 第 2 篇 | `v02` |
-| `04-cimd-auth/` | 第 4 篇 | 规划中 |
+| `04-cimd-auth/` | 第 4 篇 | 准备中（tag v04 待发布） |
 | `05-mcp-apps/` | 第 5 篇 | 规划中 |
 | `06-mcp-gateway/` | 第 6 篇 | 规划中 |
 | `07-security/` | 第 7 篇 | 规划中 |

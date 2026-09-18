@@ -1,0 +1,8 @@
+server:
+  port: 8084
+spring:
+  application:
+    name: cimd-auth-demo
+cimd:
+  require-https: false   # demo 放开 http 才能本地跑；生产务必改 true
+  allow-private: true     # demo 允许 localhost；生产改 false
