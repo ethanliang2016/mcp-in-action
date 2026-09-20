@@ -18,6 +18,7 @@
 | `first-server`（第 2 篇） | 17+ | 3.3.x | 1.0.0-M7 |
 | `stateless`（新版） | **21+** | 4.0.x | **2.0.1** |
 | `mcp-apps`（第 5 篇） | **21+** | 4.0.x | **2.0.1** |
+| `mcp-gateway`（第 6 篇） | **21+** | 4.0.x | 不用 Spring AI，用 **MCP Java SDK 2.0.0** |
 
 > 建议统一用 **JDK 21** 构建（旧版模块以 release 17 编译）。
 
@@ -38,6 +39,14 @@ cd ../stateless && mvn spring-boot:run                        # 端口 8082（�
 # 第 5 篇：MCP Apps（工具返回一块可交互界面）
 git checkout v05
 cd 05-mcp-apps && mvn spring-boot:run                        # 端口 8085
+
+# 第 6 篇：自建 MCP 网关（多后端聚合 + 命名空间隔离）
+git checkout v06
+cd 05-mcp-apps && mvn package -DskipTests
+java -jar target/mcp-apps-1.0.0-SNAPSHOT.jar --server.port=8085   # site-a 后端
+java -jar target/mcp-apps-1.0.0-SNAPSHOT.jar --server.port=8087   # site-b 后端（同代码换端口）
+cd ../06-mcp-gateway && mvn package -DskipTests
+java -jar target/mcp-gateway-1.0.0-SNAPSHOT.jar                   # 网关，端口 8086
 ```
 
 ## 第 3 篇：新旧对照
@@ -64,6 +73,18 @@ cd 05-mcp-apps && mvn spring-boot:run                        # 端口 8085
 > Spring AI 的 `ToolDefinition` 只有 name / description / inputSchema，**没有 meta**，
 > 所以绑定要走 `@McpTool(metaProvider = ...)`，`@Tool` 那条路挂不上。
 
+## 第 6 篇：自建 MCP 网关
+
+网关对下游用 MCP client 拉各后端的工具，加 `前缀__原名` 做命名空间隔离；对上游用一个无状态 MCP Server 统一暴露，`tools/call` 按前缀路由转发。
+
+工具是运行时拉来的，注解声明不出来，所以这一篇**不用** Spring AI 的注解式 starter，直接走底层 MCP Java SDK（`io.modelcontextprotocol.sdk:mcp-core`）。
+
+> 两个要点：
+> - **后端必须先于网关启动**——启动时连不上的后端会被跳过（记一条 WARN），本次不暴露它的工具
+> - **工具表是启动时的快照**——后端挂掉后 `tools/list` 照常列出它的工具，网关不探活、不刷新
+
+已知未覆盖：`resources/list` 与 `resources/read` 未代理，因此 `_meta.ui` 透传之后 MCP Apps 的界面在网关后面会断链。
+
 ## 目录结构
 
 | 目录 | 篇目 | tag |
@@ -73,8 +94,8 @@ cd 05-mcp-apps && mvn spring-boot:run                        # 端口 8085
 | `02-first-server/` | 第 2 篇 | `v02` |
 | `04-cimd-auth/` | 第 4 篇 | `v04` |
 | `05-mcp-apps/` | 第 5 篇 | `v05` |
-| `06-mcp-gateway/` | 第 6 篇 | 规划中 |
-| `07-security/` | 第 7 篇 | 规划中 |
+| `06-mcp-gateway/` | 第 6 篇 | `v06` |
+| `07-mcp-gateway-auth/` | 第 7 篇 | `v07` |
 
 ## 说明
 
