@@ -1,0 +1,24 @@
+server:
+  port: 8086
+
+spring:
+  application:
+    name: mcp-gateway
+
+# 网关聚合的下游 MCP Server。
+# 这里刻意接了两个「同一份代码、不同端口」的机房服务：
+# 它们暴露的工具名完全一样（get_room_dashboard / control_device），
+# 靠 prefix 做命名空间隔离，正是网关要解决的核心冲突。
+mcp:
+  gateway:
+    backends:
+      - name: site-a
+        url: http://localhost:8085
+        prefix: site-a
+      - name: site-b
+        url: http://localhost:8087
+        prefix: site-b
+
+logging:
+  level:
+    com.ethanliang.mcp: DEBUG
