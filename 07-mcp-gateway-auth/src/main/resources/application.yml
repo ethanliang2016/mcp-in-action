@@ -1,0 +1,25 @@
+server:
+  port: 8086
+
+spring:
+  application:
+    name: mcp-gateway-auth
+
+# 网关聚合的下游 MCP Server，凭证全部走环境变量，仓库里只有 ${...} 占位符。
+# 启动前导出：GATEWAY_MCP_TOKEN / SITE_A_TOKEN / SITE_B_TOKEN
+mcp:
+  gateway:
+    token: ${GATEWAY_MCP_TOKEN}
+    backends:
+      - name: site-a
+        url: http://localhost:8085
+        prefix: site-a
+        auth-header: ${SITE_A_TOKEN}
+      - name: site-b
+        url: http://localhost:8087
+        prefix: site-b
+        auth-header: ${SITE_B_TOKEN}
+
+logging:
+  level:
+    com.ethanliang.mcp: DEBUG
