@@ -1,0 +1,33 @@
+server:
+  port: 8088
+
+spring:
+  application:
+    name: store-ops-mcp
+  # 本地配置覆盖：本地 Redis 密码等敏感项放 application-local.yml（已被 .gitignore 忽略，不会提交）
+  config:
+    import: optional:file:./application-local.yml
+  ai:
+    mcp:
+      server:
+        name: store-ops-mcp-server
+        version: 1.0.0
+
+        # 第 8 篇：无状态模式（第 3 篇已完成迁移，本篇处理"迁完之后"的问题）
+        # 旧版 sse-message-endpoint 已不再需要，端点默认为 /mcp
+        protocol: STATELESS
+  data:
+    redis:
+      host: localhost
+      port: 6379
+      # 密码不要写在这里——本地密码放 application-local.yml（不入库）
+
+# 上下文存储类型：memory（本实例内存，多实例会丢） / redis（外置共享，多实例仍在）
+# 切换这一项即可复现第 8 篇问题 2 的"问题"与"解法"
+store:
+  context:
+    type: memory
+
+logging:
+  level:
+    com.ethanliang.mcp: DEBUG
