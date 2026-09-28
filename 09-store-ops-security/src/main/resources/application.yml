@@ -1,0 +1,25 @@
+server:
+  port: 8090
+
+spring:
+  application:
+    name: store-ops-security
+  # L1 传输安全：生产走 mTLS（双向认证），在接入层/网关终止或 Spring Boot SSL 配置实现。
+  # 本模块演示说明见正文；ssl.enabled 打开后需要证书配置，默认关闭以便本地实测。
+  ai:
+    mcp:
+      server:
+        name: store-ops-security-mcp-server
+        version: 1.0.0
+        protocol: STATELESS
+
+# L2 客户端 Token：走环境变量注入，默认值为占位串（不是真实凭据）
+# 启动覆盖：STORE_SECURITY_TOKEN=your-real-token java -jar ...
+# 生产请走 CIMD / EMA 体系，不要把真实令牌写进仓库
+store:
+  security:
+    token: ${STORE_SECURITY_TOKEN:demo-token-change-me}
+
+logging:
+  level:
+    com.ethanliang.mcp: INFO
