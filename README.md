@@ -19,13 +19,18 @@
 | `stateless`（新版） | **21+** | 4.0.x | **2.0.1** |
 | `mcp-apps`（第 5 篇） | **21+** | 4.0.x | **2.0.1** |
 | `mcp-gateway`（第 6 篇） | **21+** | 4.0.x | 不用 Spring AI，用 **MCP Java SDK 2.0.0** |
+| `store-ops`（第 8 篇） | **21+** | 4.0.x | **2.0.1** |
+| `store-ops-security`（第 9 篇） | **21+** | 4.0.x | **2.0.1**（+ Spring Security / Bucket4j） |
 
 > 建议统一用 **JDK 21** 构建（旧版模块以 release 17 编译）。
 
 ## 快速开始
 
 ```bash
-git clone https://github.com/ethanliang2016/mcp-in-action.git
+# 国内推荐（Gitee，秒 clone）
+git clone https://gitee.com/ethanliang2016/mcp-in-action.git
+# GitHub 镜像（海外网络）
+# git clone https://github.com/ethanliang2016/mcp-in-action.git
 cd mcp-in-action
 # 第 2 篇：跑通第一个 MCP Server（SSE + 有状态）
 git checkout v02
@@ -47,6 +52,10 @@ java -jar target/mcp-apps-1.0.0-SNAPSHOT.jar --server.port=8085   # site-a 后�
 java -jar target/mcp-apps-1.0.0-SNAPSHOT.jar --server.port=8087   # site-b 后端（同代码换端口）
 cd ../06-mcp-gateway && mvn package -DskipTests
 java -jar target/mcp-gateway-1.0.0-SNAPSHOT.jar                   # 网关，端口 8086
+
+# 第 8 篇：门店运营助手——补参 / 会话数据外置 / 客户端兼容
+git checkout v08
+cd 08-store-ops && mvn spring-boot:run                            # 端口 8088
 ```
 
 ## 第 3 篇：新旧对照
@@ -96,6 +105,8 @@ java -jar target/mcp-gateway-1.0.0-SNAPSHOT.jar                   # 网关，端
 | `05-mcp-apps/` | 第 5 篇 | `v05` |
 | `06-mcp-gateway/` | 第 6 篇 | `v06` |
 | `07-mcp-gateway-auth/` | 第 7 篇 | `v07` |
+| `08-store-ops/` | 第 8 篇 · 门店运营助手（补参/会话外置/兼容） | `v08` |
+| `09-store-ops-security/` | 第 9 篇 · 6 层安全防护（mTLS/CIMD/RBAC/限流/审计） | `v09` |
 
 ## 说明
 
