@@ -1,0 +1,7 @@
+# K8s 场景：Redis 用集群内单机 Service（哨兵切换已在 docker 场景验证；
+# K8s 重点验证多副本自愈与 Service 负载均衡）
+spring:
+  data:
+    redis:
+      host: redis
+      port: 6379

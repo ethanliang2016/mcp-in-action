@@ -1,0 +1,39 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: store-ha-app
+  labels:
+    app: store-ha-app
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: store-ha-app
+  template:
+    metadata:
+      labels:
+        app: store-ha-app
+    spec:
+      containers:
+        - name: store-ha-app
+          image: store-ha:local
+          imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: 8088
+          env:
+            - name: SPRING_PROFILES_ACTIVE
+              value: k8s
+          # K8s 自带负载均衡 + 探针，无需 Nginx 被动检查
+          readinessProbe:
+            httpGet:
+              path: /actuator/health
+              port: 8088
+            initialDelaySeconds: 20
+            periodSeconds: 5
+            failureThreshold: 2
+          livenessProbe:
+            httpGet:
+              path: /actuator/health
+              port: 8088
+            initialDelaySeconds: 30
+            periodSeconds: 10

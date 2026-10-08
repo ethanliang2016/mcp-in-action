@@ -46,3 +46,6 @@ application-local.properties
 
 # Env
 .env
+
+# 篇11（飞书对接，尚未定稿，本仓库暂不纳入）
+11-feishu/

@@ -1,0 +1,51 @@
+server:
+  port: 8088
+
+spring:
+  application:
+    name: store-ha-mcp
+  # 本地敏感项（如 Redis 密码）放 application-local.yml，已被 .gitignore 忽略
+  config:
+    import: optional:file:./application-local.yml
+  ai:
+    mcp:
+      server:
+        name: store-ha-mcp-server
+        version: 1.0.0
+        # 第 8 篇已无状态化，本篇在此基础上做高可用
+        protocol: STATELESS
+  data:
+    redis:
+      # 连接细节由 profile 决定：docker=sentinel / k8s=单机
+      # 哨兵密码、单机密码等敏感项放 application-local.yml
+  cache:
+    type: none
+
+# 上下文与规则表外置 Redis（多实例一致；Redis 走哨兵防单点）
+store:
+  context:
+    type: redis
+
+# Actuator 健康检查：供 Nginx（被动检查）/ K8s 探针摘除不健康实例
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info
+  endpoint:
+    health:
+      show-details: always
+  probes:
+    liveness:
+      enabled: true
+    readiness:
+      enabled: true
+
+# 故障演练开关：设 >0 时 get_device_status 模拟"下游慢但不报错"（毫秒）
+ha:
+  device:
+    latency-ms: 0
+
+logging:
+  level:
+    com.ethanliang.mcp: INFO

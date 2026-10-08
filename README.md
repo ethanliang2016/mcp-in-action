@@ -21,6 +21,7 @@
 | `mcp-gateway`（第 6 篇） | **21+** | 4.0.x | 不用 Spring AI，用 **MCP Java SDK 2.0.0** |
 | `store-ops`（第 8 篇） | **21+** | 4.0.x | **2.0.1** |
 | `store-ops-security`（第 9 篇） | **21+** | 4.0.x | **2.0.1**（+ Spring Security / Bucket4j） |
+| `store-ha`（第 10 篇） | **21+** | 4.0.x | **2.0.1**（+ Resilience4j / Redis 哨兵 / Nginx） |
 
 > 建议统一用 **JDK 21** 构建（旧版模块以 release 17 编译）。
 
@@ -56,7 +57,15 @@ java -jar target/mcp-gateway-1.0.0-SNAPSHOT.jar                   # 网关，端
 # 第 8 篇：门店运营助手——补参 / 会话数据外置 / 客户端兼容
 git checkout v08
 cd 08-store-ops && mvn spring-boot:run                            # 端口 8088
+
+# 第 10 篇：高可用——多实例 / 熔断降级 / Redis 哨兵
+git checkout v10
+cd 10-store-ha && mvn -q package -DskipTests
+docker compose build && docker compose up                         # Nginx :8080 -> 3× app :8088
 ```
+
+> 第 2/3/5/6/8 篇：`cd` 到模块目录直接 `mvn spring-boot:run`（端口见各篇小节）。
+> 第 10 篇：默认是**容器多实例**形态，单机直连见下方第 10 篇小节。
 
 ## 第 3 篇：新旧对照
 
@@ -94,6 +103,49 @@ cd 08-store-ops && mvn spring-boot:run                            # 端口 8088
 
 已知未覆盖：`resources/list` 与 `resources/read` 未代理，因此 `_meta.ui` 透传之后 MCP Apps 的界面在网关后面会断链。
 
+## 第 10 篇：MCP Server 高可用
+
+在篇八（无状态化）基础上叠 HA：**工具代码不用改**，改的是部署形态与容错。实测拓扑：
+
+```
+客户端 → Nginx :8080（加权轮询 3:2:1 + 被动健康检查）
+            ├─ store-ha-app-1 :8088  ×3 实例
+            └─ Redis：1 主 2 从 + 3 哨兵（mymaster 自动故障转移）
+```
+
+| 手段 | 作用 | 关键配置/代码 |
+|---|---|---|
+| 多实例 + LB | 任一实例挂了流量自动切走 | `nginx/nginx.conf`（`weight` / `max_fails` / `fail_timeout`） |
+| 健康检查 | LB 与 K8s 探针据此摘除坏实例 | `/actuator/health`（`liveness` / `readiness`） |
+| 熔断降级 | 下游慢也算失败，打开后返回"暂不可用"，不拖垮其他工具 | `StoreService#getDeviceStatus`（Resilience4j） |
+| 软降级 | 销售查询走 Redis 缓存，Redis 挂了降级返回源数据 | `StoreService#getStoreSales` |
+| 状态/规则外置 | 上下文与补货规则放 Redis，多实例读到同一份 | `RedisContextStore` / `rule:restock-multiplier` |
+
+```bash
+cd 10-store-ha
+mvn -q package -DskipTests && docker compose build && docker compose up
+
+# 实测脚本（走 Nginx :8080 验证完整链路）
+pip install mcp
+python verify/ha_check.py poll       # 轮询：看请求是否按权重分散到 app-1/2/3
+python verify/ha_check.py normal     # 正常路径
+python verify/ha_check.py circuit    # 熔断演练（需先 HA_DEVICE_LATENCY_MS=5000 docker compose up）
+python verify/ha_check.py sentinel   # 哨兵切换后仍能读上下文
+
+# 故障演练：模拟下游慢 5s → 慢调用率超 50% → 熔断打开
+HA_DEVICE_LATENCY_MS=5000 docker compose up
+```
+
+> 四个坑（都是实测踩出来的）：
+> 1. Nginx 必须显式 `proxy_set_header Host $host`，否则 upstream 名 `mcp_backend` 带下划线会被 Tomcat 判 400
+> 2. 无状态化之后若把上下文放本实例内存，多实例下 `save_context`/`load_context` 落在不同实例就读不到——HA 最常见的翻车点
+> 3. 哨兵要写配置文件持久化状态，宿主机挂载的 `sentinel*.conf` 属主不对会一直报 `Permission denied`，compose 里已改为挂到 `/mnt` 再拷进 `/data` 运行
+> 4. 主库故障演练要用 `docker compose pause redis-master` 而不是 `stop`：`stop` 会让 DNS 别名注销，哨兵解析失败进入 TILT 模式而**不发起 failover**（实测 sdown 被拖到 30s 后且始终不切换）；`pause` 下 5s sdown、7s 完成 switch-master
+>
+> 本篇样例未叠加篇九的鉴权/限流/审计，生产请把两层合并。
+
+📋 **完整实测过程**（逐条命令、原始输出、问题定位与修复）：[`10-store-ha/verify/实测记录.md`](10-store-ha/verify/实测记录.md)
+
 ## 目录结构
 
 | 目录 | 篇目 | tag |
@@ -107,6 +159,7 @@ cd 08-store-ops && mvn spring-boot:run                            # 端口 8088
 | `07-mcp-gateway-auth/` | 第 7 篇 | `v07` |
 | `08-store-ops/` | 第 8 篇 · 门店运营助手（补参/会话外置/兼容） | `v08` |
 | `09-store-ops-security/` | 第 9 篇 · 6 层安全防护（mTLS/CIMD/RBAC/限流/审计） | `v09` |
+| `10-store-ha/` | 第 10 篇 · 门店运营助手高可用（多实例/熔断/软降级/Redis 哨兵） | `v10` |
 
 ## 说明
 

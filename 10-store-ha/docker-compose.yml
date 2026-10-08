@@ -1,0 +1,108 @@
+# 第 10 篇高可用实测拓扑
+#   nginx (加权轮询 3:2:1 + 被动健康检查)  ->  3× store-ha-app (8088)
+#   redis: 1 master + 2 replica + 3 sentinel (哨兵自动故障转移)
+#
+# 用法：
+#   mvn -q package -DskipTests
+#   docker compose build
+#   docker compose up            # 默认设备状态正常（latency=0）
+#   HA_DEVICE_LATENCY_MS=5000 docker compose up   # 故障演练：模拟设备接口慢
+
+services:
+  nginx:
+    image: nginx:latest
+    ports:
+      - "8080:80"
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+    depends_on:
+      - store-ha-app-1
+      - store-ha-app-2
+      - store-ha-app-3
+
+  store-ha-app-1:
+    build: .
+    environment:
+      - SPRING_PROFILES_ACTIVE=docker
+      - HA_DEVICE_LATENCY_MS=${HA_DEVICE_LATENCY_MS:-0}
+      - SERVER_TOMCAT_ACCESSLOG_ENABLED=true
+      - "SERVER_TOMCAT_ACCESSLOG_PATTERN=%h %l %u %t \"%r\" %s %b %{Content-Type}i %{Content-Length}i %{Transfer-Encoding}i"
+      - INSTANCE_ID=app-1
+    expose:
+      - "8088"
+
+  store-ha-app-2:
+    build: .
+    environment:
+      - SPRING_PROFILES_ACTIVE=docker
+      - HA_DEVICE_LATENCY_MS=${HA_DEVICE_LATENCY_MS:-0}
+      - SERVER_TOMCAT_ACCESSLOG_ENABLED=true
+      - "SERVER_TOMCAT_ACCESSLOG_PATTERN=%h %l %u %t \"%r\" %s %b %{Content-Type}i %{Content-Length}i %{Transfer-Encoding}i"
+      - INSTANCE_ID=app-2
+    expose:
+      - "8088"
+
+  store-ha-app-3:
+    build: .
+    environment:
+      - SPRING_PROFILES_ACTIVE=docker
+      - HA_DEVICE_LATENCY_MS=${HA_DEVICE_LATENCY_MS:-0}
+      - SERVER_TOMCAT_ACCESSLOG_ENABLED=true
+      - "SERVER_TOMCAT_ACCESSLOG_PATTERN=%h %l %u %t \"%r\" %s %b %{Content-Type}i %{Content-Length}i %{Transfer-Encoding}i"
+      - INSTANCE_ID=app-3
+    expose:
+      - "8088"
+
+  redis-master:
+    image: redis:7-alpine
+    command: ["redis-server", "--appendonly", "yes"]
+    expose:
+      - "6379"
+
+  redis-replica-1:
+    image: redis:7-alpine
+    command: ["redis-server", "--replicaof", "redis-master", "6379", "--appendonly", "yes"]
+    expose:
+      - "6379"
+
+  redis-replica-2:
+    image: redis:7-alpine
+    command: ["redis-server", "--replicaof", "redis-master", "6379", "--appendonly", "yes"]
+    expose:
+      - "6379"
+
+  # 哨兵要写自己的配置文件来持久化状态；宿主机挂载进来的文件属主不是容器里的 redis 用户，
+  # 直接挂载 /etc/sentinel.conf 会报 "Could not create tmp config file (Permission denied)"。
+  # 因此挂载到只读的 /mnt，启动时先拷进容器内可写目录再运行。
+  redis-sentinel-1:
+    image: redis:7-alpine
+    working_dir: /data
+    command: ["sh", "-c", "cp /mnt/sentinel1.conf /data/sentinel.conf && redis-server /data/sentinel.conf --sentinel"]
+    volumes:
+      - ./redis/sentinel1.conf:/mnt/sentinel1.conf:ro
+    ports:
+      - "26379:26379"
+    depends_on:
+      - redis-master
+
+  redis-sentinel-2:
+    image: redis:7-alpine
+    working_dir: /data
+    command: ["sh", "-c", "cp /mnt/sentinel2.conf /data/sentinel.conf && redis-server /data/sentinel.conf --sentinel"]
+    volumes:
+      - ./redis/sentinel2.conf:/mnt/sentinel2.conf:ro
+    expose:
+      - "26379"
+    depends_on:
+      - redis-master
+
+  redis-sentinel-3:
+    image: redis:7-alpine
+    working_dir: /data
+    command: ["sh", "-c", "cp /mnt/sentinel3.conf /data/sentinel.conf && redis-server /data/sentinel.conf --sentinel"]
+    volumes:
+      - ./redis/sentinel3.conf:/mnt/sentinel3.conf:ro
+    expose:
+      - "26379"
+    depends_on:
+      - redis-master
