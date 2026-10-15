@@ -47,5 +47,6 @@ application-local.properties
 # Env
 .env
 
-# 篇11（飞书对接，尚未定稿，本仓库暂不纳入）
-11-feishu/
+# 篇11（飞书对接）模块代码随 v11 纳入发布；凭据与运行日志禁止提交
+11-feishu/feishu.cred
+11-feishu/run.err

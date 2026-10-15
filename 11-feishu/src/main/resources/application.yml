@@ -1,0 +1,22 @@
+server:
+  port: 8099
+
+spring:
+  application:
+    name: feishu-mcp
+  ai:
+    mcp:
+      server:
+        name: feishu-mcp-server
+        version: 1.0.0
+        protocol: STATELESS
+
+# 门店上下文存储：memory 模式默认生效，无需 Redis / Docker
+store:
+  context:
+    type: memory
+
+logging:
+  level:
+    com.ethanliang.mcp: DEBUG
+    com.lark.oapi: INFO

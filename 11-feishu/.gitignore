@@ -1,0 +1,8 @@
+# 本地密钥：绝不入库（篇11 评审整改·密钥清理）
+*.cred
+feishu.cred
+application-local.yml
+
+# 构建产物
+target/
+*.class
