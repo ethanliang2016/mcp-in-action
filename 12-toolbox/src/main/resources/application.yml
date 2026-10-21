@@ -1,0 +1,24 @@
+server:
+  port: 8088
+
+spring:
+  application:
+    name: toolbox-mcp
+  ai:
+    mcp:
+      server:
+        enabled: true
+        name: toolbox-mcp
+        version: 1.0.0
+  data:
+    redis:
+      host: localhost
+      port: 6379
+
+toolbox:
+  demo:
+    seed: true   # 仅种子实例=true；多实例一致性演示时第二实例设 false，验证共享 Redis 状态
+
+logging:
+  level:
+    com.ethanliang.mcp.toolbox: INFO
