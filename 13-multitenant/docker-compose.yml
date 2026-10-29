@@ -1,0 +1,51 @@
+# 篇13 多租户隔离 · 实测拓扑
+# 双网关副本（无状态，同篇八）+ Redis（租户映射 + 配额计数）
+#
+# 用法：
+#   1) mvn clean package -DskipTests        # 产出 target/multitenant-mcp.jar
+#   2) docker compose up -d --build         # 起 redis + gw-1(8080) + gw-2(8081)
+#   3) ./verify-multitenant.sh              # 跑四件套验证
+#   4) docker compose down
+#
+# 端口冲突提示：若本机 8080 已被占用（例如其他容器），改为
+#   GW1=http://localhost:18080 GW2=http://localhost:18081 ./verify-multitenant.sh
+# 并把下面的 ports 映射改成 "18080:8080" / "18081:8080"。
+
+services:
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6379:6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+
+  gw-1:
+    build: .
+    environment:
+      GW_PORT: "8080"
+      REPLICA: "gw-1"
+      REDIS_HOST: redis
+      REDIS_PORT: "6379"
+    ports:
+      - "8080:8080"
+    depends_on:
+      redis:
+        condition: service_healthy
+
+  gw-2:
+    build: .
+    environment:
+      GW_PORT: "8081"
+      REPLICA: "gw-2"
+      REDIS_HOST: redis
+      REDIS_PORT: "6379"
+    ports:
+      - "8081:8081"
+    depends_on:
+      redis:
+        condition: service_healthy
+
+# k8s 等价：Deployment replicas:2 + Service + Redis（StatefulSet 或托管 Redis）

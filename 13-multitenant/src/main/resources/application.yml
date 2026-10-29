@@ -1,0 +1,41 @@
+server:
+  port: ${GW_PORT:8080}
+
+spring:
+  application:
+    name: multitenant-mcp
+  data:
+    redis:
+      host: ${REDIS_HOST:localhost}
+      port: ${REDIS_PORT:6379}
+
+multitenant:
+  # 固定窗口长度（秒）：配额计数窗口
+  quota-window-seconds: 60
+  # 全量工具表（网关聚合后的完整目录）；每个租户只能看到 allowed-tools 子集
+  all-tools:
+    - get_store_sales
+    - get_inventory
+    - create_purchase_order
+    - gen_finance_report
+  tenants:
+    - id: store
+      key: sk-store-0000000000000000000000000000
+      allowed-tools: get_store_sales,get_inventory
+      quota-limit: 20
+      failover: closed   # 核心租户：Redis 不可用时全拒，保隔离
+    - id: supply
+      key: sk-supply-1111111111111111111111111111
+      allowed-tools: get_inventory,create_purchase_order
+      quota-limit: 20
+      failover: open     # 长尾租户：Redis 不可用时放行，保可用
+    - id: finance
+      key: sk-finance-2222222222222222222222222222
+      allowed-tools: gen_finance_report
+      quota-limit: 10
+      failover: closed
+
+# 日志 pattern 带 tenant（MDC），验证"数据隔离·日志按租户分"
+logging:
+  pattern:
+    console: "%d{HH:mm:ss.SSS} %-5level [%X{tenant:-none}] %logger{36} - %msg%n"
